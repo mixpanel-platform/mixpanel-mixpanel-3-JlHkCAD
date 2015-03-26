@@ -6,32 +6,36 @@
     <script src="https://cdn.mxpnl.com/libs/mixpanel-platform/build/mixpanel-platform.v0.latest.min.js"></script>
   </head>
   <body class="mixpanel-platform-body">
-    <h1>User Selected Ingredient Counts</h1>
-    <div class="mixpanel-platform-section" style="margin-top: 10px;">
-      <div id="graph"></div>
+    <div class="mixpanel-platform-section">
+      <div id="eventSelect" style="float: left;"></div>
+      <div id="by" class="mixpanel-platform-label" style="margin-left: 10px; display: none;">by</div>
+      <div id="propSelect" style="float: left;"></div>
+      <div id="dateSelect" style="float: right"></div>
+      <div style="clear: both;"></div>
+      <div id="graph" style="margin-bottom: 10px;"></div>
     </div>
+    <div id="table"></div>
     <script>
-        var eventSelect = $('#eventSelect').MPEventSelect().on('change', function(e, eventName) {
-          propSelect.MPPropertySelect('setEvent', eventName);
-          $("#by").show();
-          runQuery();
-        });
+      var runQuery = function(e) {
+        var eventName = eventSelect.MPEventSelect('value'),
+            propName = propSelect.MPPropertySelect('value'),
+            dateRange = dateSelect.MPDatepicker('value');
 
-        var propSelect  = $('#propSelect').MPPropertySelect().on('change', runQuery);
-        var dateSelect = $('#dateSelect').MPDatepicker().on('change', runQuery);
-
-        var runQuery = function(e) {
-          var eventName = eventSelect.MPEventSelect('value'),
-              propName = propSelect.MPPropertySelect('value'),
-              dateRange = dateSelect.MPDatepicker('value');
-
-          if (eventName) {
-            MP.api.segment(eventName, propName, dateRange).done(function(results) {
-              $('#graph').MPChart({chartType: 'bar', stacked: true, normalized: true}).MPChart('setData', results);
-              $('#table').MPTable().MPTable('setData', results);;
-            });
-          }
-        };
+        if (eventName) {
+          MP.api.segment(eventName, propName, dateRange).done(function(results) {
+            $('#graph').MPChart({chartType: 'bar', stacked: true, normalized: true}).MPChart('setData', results);
+            $('#table').MPTable().MPTable('setData', results);
+          });
+        }
+      };
+      
+      var propSelect = $('#propSelect').MPPropertySelect().on('change', runQuery);
+      var dateSelect = $('#dateSelect').MPDatepicker().on('change', runQuery);
+      var eventSelect = $('#eventSelect').MPEventSelect().on('change', function(e, eventName) {
+        propSelect.MPPropertySelect('setEvent', eventName);
+        $("#by").show();
+        runQuery();
+      });
     </script>
   </body>
 </html>
