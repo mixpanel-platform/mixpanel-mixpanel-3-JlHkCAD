@@ -16,29 +16,17 @@
         unit: 'month',
         limit: 100
       }).done(function(results) {
-        // debugger;
         var data = {},
             arr = [];
-            
-        _.each(results.values(), function(value, key) {
-           var total = 0;
-           for (var vkey in value) {
-              if (value.hasOwnProperty(vkey)) {
-                total = total + value[vkey];
-              }
-            }
-            if (key !== 'empty') {
-              arr.push({
-                key : key,
-                val : total
-              });
-            }
+          
+        arr = _.map(results.values(), function(value, key) {
+          return {
+            key: key,
+            val: MP.Data.inst(value).sum().values()
+          }
         });
         
-        arr.sort(function(a,b) {
-          if (a.val < b.val) { return 1; }
-          return -1;
-        });
+        arr = _.sortBy(arr, 'val').reverse();
         
         _.each(arr, function(item) {
           data[item.key] = item.val;
