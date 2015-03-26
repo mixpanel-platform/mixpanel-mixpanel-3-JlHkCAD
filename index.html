@@ -7,36 +7,31 @@
   </head>
   <body class="mixpanel-platform-body">
     <h1>User Selected Ingredient Counts</h1>
-    <div id="graph"></div>
+    <div class="mixpanel-platform-section" style="margin-top: 10px;">
+      <div id="graph"></div>
+    </div>
     <script>
-      var eventGraph  = $('#graph').MPChart({chartType: 'bar'});
-      
-      MP.api.segment('Viewed report', '$city', {
-        from: moment().subtract(6, 'months'), 
-        unit: 'month',
-        limit: 100
-      }).done(function(results) {
-        var data = {},
-            arr = [];
-          
-        arr = _.map(results.values(), function(value, key) {
-          return {
-            key: key,
-            val: MP.Data.inst(value).sum().values()
+        var eventSelect = $('#eventSelect').MPEventSelect().on('change', function(e, eventName) {
+          propSelect.MPPropertySelect('setEvent', eventName);
+          $("#by").show();
+          runQuery();
+        });
+
+        var propSelect  = $('#propSelect').MPPropertySelect().on('change', runQuery);
+        var dateSelect = $('#dateSelect').MPDatepicker().on('change', runQuery);
+
+        var runQuery = function(e) {
+          var eventName = eventSelect.MPEventSelect('value'),
+              propName = propSelect.MPPropertySelect('value'),
+              dateRange = dateSelect.MPDatepicker('value');
+
+          if (eventName) {
+            MP.api.segment(eventName, propName, dateRange).done(function(results) {
+              $('#graph').MPChart({chartType: 'bar', stacked: true, normalized: true}).MPChart('setData', results);
+              $('#table').MPTable().MPTable('setData', results);;
+            });
           }
-        });
-        
-        arr = _.sortBy(arr, 'val').reverse();
-        
-        _.each(arr, function(item) {
-          data[item.key] = item.val;
-        });
-        
-        eventGraph.MPChart('setData', data);
-        var table = $('<div></div>').appendTo('body').MPTable();
-        table.data()['mixpanel-MPTable'].output.limitX = 1500;
-        table.MPTable('setData', {'Ingredient Counts': data});       
-      });
+        };
     </script>
   </body>
 </html>
